@@ -24,7 +24,8 @@ It can span multiple lines."""),
 	# Author(s)
 	"addon-author" : u"name <name@domain.com>",
 	# URL for the add-on documentation support
-	"addon-url" : None
+	"addon-url" : None,
+	"addon-docFileName" : "index.html"
 }
 
 
@@ -35,8 +36,10 @@ import os.path
 pythonSources = []
 
 # Files that contain strings for translation. Usually your python sources
-i18nSources = pythonSources + ["buildVars.py", "docHandler.py"]
+i18nSources = pythonSources + ["buildVars.py"]
 
 # Files that will be ignored when building the nvda-addon file
 # Paths are relative to the addon directory, not to the root directory of your addon sources.
 excludedFiles = []
+
+markdownSources = [os.path.join("doc", "*", "*.md")]
