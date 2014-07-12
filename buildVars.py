@@ -25,7 +25,7 @@ It can span multiple lines."""),
 	"addon-author" : u"name <name@domain.com>",
 	# URL for the add-on documentation support
 	"addon-url" : None,
-	"addon-docFileName" : "index.html"
+	"addon-docFileName" : "readme.html"
 }
 
 
@@ -42,4 +42,3 @@ i18nSources = pythonSources + ["buildVars.py"]
 # Paths are relative to the addon directory, not to the root directory of your addon sources.
 excludedFiles = []
 
-markdownSources = [os.path.join("doc", "*", "*.md")]
