@@ -25,7 +25,8 @@ It can span multiple lines."""),
 	"addon-author" : u"name <name@domain.com>",
 	# URL for the add-on documentation support
 	"addon-url" : None,
-	"addon-docFileName" : "readme.html"
+	# File name for the main documentation file
+	"addon-docFileName" : "index.html"
 }
 
 
