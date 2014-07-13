@@ -12,52 +12,12 @@ import configobj
 import buildVars
 
 
-def md2html(source, dest):
-	import markdown
-	lang = os.path.basename(os.path.dirname(source)).replace('_', '-')
-	title="{addonSummary} {addonVersion}".format(addonSummary=buildVars.addon_info["addon-summary"], addonVersion=buildVars.addon_info["addon-version"])
-	headerDic = {
-		"[[!meta title=\"": "# ",
-		"\"]]": " #",
-	}
-	with codecs.open(source, "r", "utf-8") as f:
-		mdText = f.read()
-		for k, v in headerDic.iteritems():
-			mdText = mdText.replace(k, v, 1)
-		htmlText = markdown.markdown(mdText)
-	with codecs.open(dest, "w", "utf-8") as f:
-		f.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-			"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\"\n" +
-			"    \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n" +
-			"<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"%s\" lang=\"%s\">\n" % (lang, lang) +
-			"<head>\n" +
-			"<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"/>\n" +
-			"<link rel=\"stylesheet\" type=\"text/css\" href=\"../style.css\" media=\"screen\"/>\n" +
-			"<title>%s</title>\n" % title +
-			"</head>\n<body>\n"
-		)
-		f.write(htmlText)
-		f.write("\n</body>\n</html>")
-
-def mdTool(env):
-	mdAction=env.Action(
-		lambda target,source,env: md2html(source[0].path, target[0].path),
-		lambda target,source,env: 'Generating %s'%target[0],
-	)
-	mdBuilder=env.Builder(
-		action=mdAction,
-		suffix='.html',
-		src_suffix='.md',
-	)
-	env['BUILDERS']['markdown']=mdBuilder
-
-
 gettextvars={
 		'gettext_package_bugs_address' : 'nvda-translations@freelists.org',
 		'gettext_package_name' : buildVars.addon_info['addon-name'],
 		'gettext_package_version' : buildVars.addon_info['addon-version']
 	}
-env = Environment(ENV=os.environ, tools=['gettexttool', mdTool], **gettextvars)
+env = Environment(ENV=os.environ, tools=['gettexttool', 'jinja2_process', 'md2html'], **gettextvars)
 
 
 addonFile = env.File("{addon-name}-{addon-version}.nvda-addon".format(**buildVars.addon_info))
@@ -148,10 +108,18 @@ pythonFiles = expandGlobs(buildVars.pythonSources)
 for file in pythonFiles:
 	env.Depends(addon, file)
 
-#Convert markdown files to html
-createAddonHelp("addon") # We need at least doc in English and should append an item to Help menu
-for mdFile in env.Glob(os.path.join('addon', 'doc', '*', '*.md')):
-	htmlFile = env.markdown(mdFile)
+
+# Template some of the markdown files
+env['jinja2_context'] = {'addon_info' : buildVars.addon_info}
+
+for file in env.Glob(os.path.join("doc", "*", "*.j2")):
+	mdFile = env.jinja2Process(file)
+	env.Depends(mdFile, file)
+
+env['md2html_template'] = os.path.join("doc", "base.html.j2")
+
+for mdFile in env.Glob(os.path.join('doc', '*', '*.md')):
+	htmlFile = env.md2html(mdFile)
 	env.Depends(htmlFile, mdFile)
 	env.Depends(addon, htmlFile)
 
