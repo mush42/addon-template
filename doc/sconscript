@@ -1,0 +1,20 @@
+import os.path
+Import('env addon_info')
+
+# Template some of the markdown files
+env['jinja2_context'] = {'addon_info' : addon_info}
+
+documentationFiles = [env.File("style.css")]
+
+for file in env.Glob(os.path.join("*", "*.j2")):
+	mdFile = env.jinja2Process(file)
+	env.Depends(mdFile, file)
+
+env['md2html_template'] = os.path.join("doc", "base.html.j2")
+
+for mdFile in env.Glob(os.path.join('*', '*.md')):
+	htmlFile = env.md2html(mdFile)
+	env.Depends(htmlFile, mdFile)
+	documentationFiles.append(htmlFile[0])
+
+Return('documentationFiles')
